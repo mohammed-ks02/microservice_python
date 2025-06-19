@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panneau d'administration des Nœuds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-bg {
+            background-color: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Panneau d'administration des Nœuds</h1>
+            <p class="text-gray-600 mt-1">Gérez facilement la hiérarchie de vos nœuds.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Section principale: Ajout/Modification et Liste des Nœuds -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                
+                <!-- Formulaire d'ajout/modification -->
+                <div id="form-section" class="mb-8">
+                    <h2 class="text-2xl font-semibold mb-4" id="form-title">Ajouter un nouveau nœud</h2>
+                    <form id="node-form" class="space-y-4">
+                        <input type="hidden" id="node-id">
+                        <div>
+                            <label for="name_ar" class="block text-sm font-medium text-gray-700">Nom Arabe</label>
+                            <input type="text" id="name_ar" name="name_ar" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="name_fr" class="block text-sm font-medium text-gray-700">Nom Français</label>
+                            <input type="text" id="name_fr" name="name_fr" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="parent_id" class="block text-sm font-medium text-gray-700">ID Parent (optionnel)</label>
+                            <input type="number" id="parent_id" name="parent_id" placeholder="Laissez vide pour un nœud racine" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button type="submit" id="submit-button" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Ajouter le Nœud
+                            </button>
+                            <button type="button" id="cancel-edit-button" class="hidden inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Annuler
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Liste des Nœuds -->
+                <div>
+                    <h2 class="text-2xl font-semibold mb-4">Liste des Nœuds</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Arabe</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom Français</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Parent</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nodes-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Les lignes seront insérées ici par JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Colonne latérale pour Recherche et Relations -->
+            <div class="space-y-8">
+                
+                <!-- Section de Recherche -->
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-semibold mb-4">Recherche</h2>
+                    <input type="text" id="search-input" placeholder="Rechercher par nom ou ID..." class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <div id="search-results" class="mt-4 space-y-2"></div>
+                </div>
+
+                <!-- Section des Relations -->
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-semibold mb-4">Relations</h2>
+                    <div>
+                        <label for="relation-id" class="block text-sm font-medium text-gray-700">ID du Nœud</label>
+                        <input type="number" id="relation-id" placeholder="Entrez un ID de nœud" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <div class="mt-4 flex space-x-4">
+                            <button id="get-parent-button" class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700">Parent</button>
+                            <button id="get-children-button" class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">Enfants</button>
+                        </div>
+                    </div>
+                    <div id="relation-results" class="mt-4 p-4 bg-gray-50 rounded-md min-h-[50px]"></div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="delete-modal" class="hidden fixed z-10 inset-0 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Supprimer le nœud</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">Êtes-vous sûr de vouloir supprimer ce nœud ? Ses enfants deviendront des nœuds racines. Cette action est irréversible.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="confirm-delete-button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 sm:ml-3 sm:w-auto sm:text-sm">Supprimer</button>
+                    <button type="button" id="cancel-delete-button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:5000';
+
+        // --- Éléments du DOM ---
+        const form = document.getElementById('node-form');
+        const formTitle = document.getElementById('form-title');
+        const submitButton = document.getElementById('submit-button');
+        const cancelEditButton = document.getElementById('cancel-edit-button');
+        const nodesTableBody = document.getElementById('nodes-table-body');
+        const nodeIdField = document.getElementById('node-id');
+        const nameArField = document.getElementById('name_ar');
+        const nameFrField = document.getElementById('name_fr');
+        const parentIdField = document.getElementById('parent_id');
+        
+        const searchInput = document.getElementById('search-input');
+        const searchResultsContainer = document.getElementById('search-results');
+
+        const relationIdInput = document.getElementById('relation-id');
+        const getParentButton = document.getElementById('get-parent-button');
+        const getChildrenButton = document.getElementById('get-children-button');
+        const relationResultsContainer = document.getElementById('relation-results');
+        
+        const deleteModal = document.getElementById('delete-modal');
+        const confirmDeleteButton = document.getElementById('confirm-delete-button');
+        const cancelDeleteButton = document.getElementById('cancel-delete-button');
+        let nodeIdToDelete = null;
+
+        // --- Fonctions de l'API ---
+
+        async function fetchAPI(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Erreur: ${response.statusText}`);
+                }
+                return response.status === 204 ? null : response.json();
+            } catch (error) {
+                alert(`Erreur de communication avec l'API: ${error.message}`);
+                console.error(error);
+                return null;
+            }
+        }
+        
+        // --- Logique d'affichage ---
+
+        function renderNodeRow(node) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${node.id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${node.name_ar}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${node.name_fr}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${node.parent_id || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button data-action="edit" class="text-indigo-600 hover:text-indigo-900">Modifier</button>
+                    <button data-action="delete" class="text-red-600 hover:text-red-900">Supprimer</button>
+                </td>
+            `;
+            row.dataset.node = JSON.stringify(node);
+            return row;
+        }
+        
+        async function refreshNodesList() {
+            const nodes = await fetchAPI('/nodes');
+            nodesTableBody.innerHTML = '';
+            if (nodes) {
+                nodes.forEach(node => {
+                    nodesTableBody.appendChild(renderNodeRow(node));
+                });
+            }
+        }
+
+        // --- Logique du formulaire (Ajouter/Modifier) ---
+        
+        function resetForm() {
+            form.reset();
+            nodeIdField.value = '';
+            formTitle.textContent = 'Ajouter un nouveau nœud';
+            submitButton.textContent = 'Ajouter le Nœud';
+            cancelEditButton.classList.add('hidden');
+        }
+
+        function editNode(node) {
+            nodeIdField.value = node.id;
+            nameArField.value = node.name_ar;
+            nameFrField.value = node.name_fr;
+            parentIdField.value = node.parent_id;
+            
+            formTitle.textContent = `Modifier le nœud #${node.id}`;
+            submitButton.textContent = 'Enregistrer les modifications';
+            cancelEditButton.classList.remove('hidden');
+            window.scrollTo(0, 0);
+        };
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = nodeIdField.value;
+            const parent_id_val = parentIdField.value ? parseInt(parentIdField.value, 10) : null;
+            
+            const nodeData = {
+                name_ar: nameArField.value,
+                name_fr: nameFrField.value,
+                parent_id: parent_id_val,
+            };
+
+            const options = {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nodeData)
+            };
+            
+            const endpoint = id ? `/nodes/${id}` : '/nodes';
+            
+            const result = await fetchAPI(endpoint, options);
+            if(result) {
+                resetForm();
+                await refreshNodesList();
+            }
+        });
+
+        cancelEditButton.addEventListener('click', resetForm);
+
+        // --- Logique de suppression ---
+
+        function openDeleteModal(id) {
+            nodeIdToDelete = id;
+            deleteModal.classList.remove('hidden');
+        };
+
+        cancelDeleteButton.addEventListener('click', () => {
+            nodeIdToDelete = null;
+            deleteModal.classList.add('hidden');
+        });
+        
+        confirmDeleteButton.addEventListener('click', async () => {
+            if (nodeIdToDelete) {
+                await fetchAPI(`/nodes/${nodeIdToDelete}`, { method: 'DELETE' });
+                nodeIdToDelete = null;
+                deleteModal.classList.add('hidden');
+                await refreshNodesList();
+            }
+        });
+
+        nodesTableBody.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+
+            const row = e.target.closest('tr');
+            const node = JSON.parse(row.dataset.node);
+            const action = button.dataset.action;
+
+            if (action === 'edit') {
+                editNode(node);
+            } else if (action === 'delete') {
+                openDeleteModal(node.id);
+            }
+        });
+
+
+        // --- Logique de Recherche ---
+
+        searchInput.addEventListener('input', async (e) => {
+            const query = e.target.value;
+            searchResultsContainer.innerHTML = '';
+            if (query.length > 0) {
+                const results = await fetchAPI(`/nodes/search?q=${query}`);
+                if (results && results.length > 0) {
+                    results.forEach(node => {
+                        const div = document.createElement('div');
+                        div.className = 'p-2 bg-gray-100 rounded text-sm';
+                        div.textContent = `#${node.id}: ${node.name_ar} / ${node.name_fr}`;
+                        searchResultsContainer.appendChild(div);
+                    });
+                } else {
+                    searchResultsContainer.innerHTML = '<p class="text-sm text-gray-500">Aucun résultat trouvé.</p>';
+                }
+            }
+        });
+
+
+        // --- Logique des Relations ---
+        
+        function displayRelationResult(data) {
+             relationResultsContainer.innerHTML = `<pre class="text-sm whitespace-pre-wrap">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        getParentButton.addEventListener('click', async () => {
+            const id = relationIdInput.value;
+            if (!id) {
+                alert("Veuillez entrer un ID de nœud.");
+                return;
+            }
+            const parent = await fetchAPI(`/nodes/${id}/parent`);
+            displayRelationResult(parent || { message: "Ce nœud n'a pas de parent ou n'existe pas." });
+        });
+
+        getChildrenButton.addEventListener('click', async () => {
+            const id = relationIdInput.value;
+            if (!id) {
+                alert("Veuillez entrer un ID de nœud.");
+                return;
+            }
+            const children = await fetchAPI(`/nodes/${id}/children`);
+            displayRelationResult(children.length > 0 ? children : { message: "Ce nœud n'a pas d'enfants ou n'existe pas." });
+        });
+
+        // --- Initialisation ---
+        document.addEventListener('DOMContentLoaded', refreshNodesList);
+
+    </script>
+</body>
+</html>
