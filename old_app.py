@@ -14,10 +14,10 @@ app = Flask(__name__)
 # La variable DATABASE_URL doit être définie dans vos variables d'environnement pour PostgreSQL.
 # Exemple: DATABASE_URL="postgresql://user:password@localhost/mydatabase"
 # Pour que cela fonctionne, vous devez installer le pilote PostgreSQL: pip install psycopg2-binary
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///nodes.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True}
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'une_cle_tres_secrete_pour_le_dev')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
@@ -273,4 +273,4 @@ if __name__ == "__main__":
         # Cela créera les tables en fonction de vos modèles si elles n'existent pas.
         db.create_all()
     # Exécuter le serveur de développement Flask.
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000 ,debug=True)
