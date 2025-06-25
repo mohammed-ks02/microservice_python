@@ -1,15 +1,12 @@
-FROM python:3.10-slim
 
-WORKDIR .
+FROM python:3.13.5-slim
+
+WORKDIR /web
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-EXPOSE 5000
-
-CMD ["python", "old_app.py"]
-
-
-
+CMD ["python", "-u", "old_app.py"]

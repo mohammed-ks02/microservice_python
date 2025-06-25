@@ -8,7 +8,7 @@ from sqlalchemy import or_
 
 # Charger les variables d'environnement d'un fichier .env au démarrage.
 load_dotenv()
-
+# print(f"Connecting to database at: {os.getenv('DATABASE_URL')}")
 # --- Configuration de l'application et de la base de données ---
 app = Flask(__name__)
 # La variable DATABASE_URL doit être définie dans vos variables d'environnement pour PostgreSQL.
@@ -273,4 +273,4 @@ if __name__ == "__main__":
         # Cela créera les tables en fonction de vos modèles si elles n'existent pas.
         db.create_all()
     # Exécuter le serveur de développement Flask.
-    app.run(host="0.0.0.0", port=5000 ,debug=True)
+    app.run(host="0.0.0.0", port=5000 ,debug=True, use_reloader=False)

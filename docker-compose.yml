@@ -2,10 +2,17 @@ services:
   db:
     image: postgres:latest
     restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345678
       POSTGRES_DB: ministeresdb
+    ports:
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -14,8 +21,16 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - .:/web  
+      - .:/web
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://postgres:12345678@db:5432/ministeresdb
+      - SECRET_KEY=12345678  
+    env_file: 
+      - .env 
+
 volumes:
-  db:
-    pgdata:
-      driver: local
+  pgdata:
+    driver: local
