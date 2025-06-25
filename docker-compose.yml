@@ -15,7 +15,10 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-
+    deploy:
+      resources:
+        limits:
+          memory: 512M
   web:
     build: .
     ports:
@@ -26,11 +29,14 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://postgres:12345678@db:5432/ministeresdb
-      - SECRET_KEY=12345678  
+      - DATABASE_URL=postgresql://postgres:12345678@host.docker.internal:5432/ministeresdb
+      - SECRET_KEY=12345678 
     env_file: 
       - .env 
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
 volumes:
   pgdata:
-    driver: local
