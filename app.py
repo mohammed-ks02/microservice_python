@@ -1,11 +1,11 @@
-# api_app.py
+# app.py
 import os
 from flask import Flask, jsonify, request, abort, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate, upgrade as migrate_upgrade, init as migrate_init
 from flask_cors import CORS
 from dotenv import load_dotenv
-from sqlalchemy import or_, create_engine, text
+from sqlalchemy import or_, create_engine, text, inspect
 from sqlalchemy.engine import url as sa_url
 from sqlalchemy.exc import ProgrammingError
 import webbrowser
@@ -213,6 +213,13 @@ if __name__ == '__main__':
             print("Application des migrations de la base de données...")
             migrate_upgrade()
             print("Migrations appliquées avec succès.")
+
+        # Vérifie si la table 'ministeres' existe, sinon la crée
+        inspector = inspect(db.engine)
+        if 'ministeres' not in inspector.get_table_names():
+            print("Table 'ministeres' absente, création en cours...")
+            db.create_all()
+            print("Table 'ministeres' créée avec succès.")
 
     # Étape 3: Démarrer l'application Flask
     print("Démarrage de l'application Flask...")
